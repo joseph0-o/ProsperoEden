@@ -4,6 +4,8 @@
 //   app folder     the install location, normally /data/homebrew/PPSA99008
 //   data           /data/prosperoeden: config/ (prosperoeden.json), logs/, covers/, user/,
 //                  wallpapers/ (docs/WALLPAPERS.md)
+//   game files     /mnt/usb0/homebrew/prosperoeden by default, with automatic discovery across
+//                  USB drives (/mnt/usb0..7), external storage (/mnt/ext0..1), and /data
 // Without it (no resident service or local elfldr, or the request failed) the app has no data:
 // it reads the app folder as /app0, keeps only its logs in /download0, and the launcher says
 // that it has no access. It used to keep a second set of settings and saves in /download0
@@ -17,8 +19,47 @@
 
 namespace Eden {
 inline constexpr const char* kDataDir = "/data/prosperoeden";
-inline constexpr const char* kDefaultAssetsDir = "/data/prosperoeden";
+inline constexpr const char* kDefaultAssetsDir = "/mnt/usb0/homebrew/prosperoeden";
 inline constexpr const char* kInstallDir = "/data/homebrew/PPSA99008";
+
+// Ordered candidate folders searched automatically for keys/, firmware/ and roms/ (Plug & Play
+// across all PS5 USB ports, external storage mounts, and internal storage).
+inline constexpr const char* kCandidateAssetsDirs[] = {
+    "/mnt/usb0/homebrew/prosperoeden",
+    "/mnt/usb1/homebrew/prosperoeden",
+    "/mnt/usb2/homebrew/prosperoeden",
+    "/mnt/usb3/homebrew/prosperoeden",
+    "/mnt/usb4/homebrew/prosperoeden",
+    "/mnt/usb5/homebrew/prosperoeden",
+    "/mnt/usb6/homebrew/prosperoeden",
+    "/mnt/usb7/homebrew/prosperoeden",
+    "/mnt/ext0/homebrew/prosperoeden",
+    "/mnt/ext1/homebrew/prosperoeden",
+    "/mnt/usb0/prosperoeden",
+    "/mnt/usb1/prosperoeden",
+    "/mnt/usb2/prosperoeden",
+    "/mnt/usb3/prosperoeden",
+    "/mnt/usb4/prosperoeden",
+    "/mnt/usb5/prosperoeden",
+    "/mnt/usb6/prosperoeden",
+    "/mnt/usb7/prosperoeden",
+    "/mnt/ext0/prosperoeden",
+    "/mnt/ext1/prosperoeden",
+    "/mnt/usb0/homebrew/eden",
+    "/mnt/usb1/homebrew/eden",
+    "/mnt/usb2/homebrew/eden",
+    "/mnt/usb3/homebrew/eden",
+    "/mnt/ext0/homebrew/eden",
+    "/mnt/ext1/homebrew/eden",
+    "/mnt/usb0/eden",
+    "/mnt/usb1/eden",
+    "/mnt/usb2/eden",
+    "/mnt/usb3/eden",
+    "/mnt/ext0/eden",
+    "/mnt/ext1/eden",
+    "/data/homebrew/prosperoeden",
+    "/data/prosperoeden",
+};
 
 // Filesystem access requested at startup: -1 not requested, 0 granted, otherwise the
 // elevation::Status that refused it.
