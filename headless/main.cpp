@@ -218,7 +218,7 @@ static void MigrateSandboxData() {
 // it is a rename of each folder. Nothing moves unless all of it can: a folder chosen in Settings,
 // or anything already in /data/prosperoeden, leaves everything where it is.
 static void MoveGameFilesOutOfTheApp() {
-    const std::string from = std::string{Eden::kInstallDir} + "/assets", to = Eden::kDefaultAssetsDir;
+    const std::string from = std::string{Eden::kInstallDir} + "/assets", to = Eden::kDataDir;
     const std::string saved = Eden::LoadSavedAssetsDir();
     if ((!saved.empty() && saved != from) || !Eden::FileExists(from + "/keys/prod.keys") ||
         Eden::FileExists(to + "/keys/prod.keys"))
@@ -324,6 +324,7 @@ int main(int argc, char** argv) {
         if (Eden::FilesystemAccess()) {
             MigrateSandboxData();
             MoveGameFilesOutOfTheApp();
+            (void)Eden::RefreshAssetsDir();
         }
         for (const auto& folder : {Eden::UserDir(), Eden::ConfigDir(), Eden::CoversDir(), Eden::LogsDir()}) {
             std::error_code folder_error;
@@ -389,9 +390,13 @@ int main(int argc, char** argv) {
                 " uid=" + std::to_string(getuid()) + "/" + std::to_string(geteuid()) +
                 " gid=" + std::to_string(getgid()) + "/" + std::to_string(getegid());
             Eden::Report("filesystem access", access.c_str());
-            if (Eden::FilesystemAccess() && Eden::AssetsDir() == Eden::kDefaultAssetsDir)
-                for (const char* folder : {"/keys", "/firmware", "/roms", "/updates", "/mods", "/ryujinx"})
-                    (void)mkdir((std::string{Eden::kDefaultAssetsDir} + folder).c_str(), 0777);
+            if (Eden::FilesystemAccess()) {
+                if (Eden::AssetsDir() == Eden::kDefaultAssetsDir && Eden::DirectoryExists("/mnt/usb0/homebrew"))
+                    (void)mkdir(Eden::kDefaultAssetsDir, 0777);
+                if (Eden::DirectoryExists(Eden::AssetsDir()))
+                    for (const char* folder : {"/keys", "/firmware", "/roms", "/updates", "/mods", "/ryujinx"})
+                        (void)mkdir((Eden::AssetsDir() + folder).c_str(), 0777);
+            }
             // RADV's shader cache is kept with the app's data (its own default is /app0), so it also
             // works when the app is installed as a read-only package image. The cache an earlier
             // version kept in the app folder moves over.

@@ -575,7 +575,8 @@ int eden_save_export(uint64_t title_id, char* path, size_t capacity) {
 }
 
 const char* eden_startup_error() {
-    static const std::string error = []() -> std::string {
+    static std::string error;
+    error = []() -> std::string {
         try {
             const std::string keys = Eden::AssetsPath("keys");
             const std::string firmware = Eden::AssetsPath("firmware");

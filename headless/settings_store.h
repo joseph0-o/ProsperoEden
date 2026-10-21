@@ -235,7 +235,14 @@ inline bool ReadFile(const std::string& path, std::string& text) {
     return ok;
 }
 
+inline void EnsureParentDirs(const std::string& path) {
+    for (std::size_t pos = 1; (pos = path.find('/', pos)) != std::string::npos; ++pos) {
+        (void)::mkdir(path.substr(0, pos).c_str(), 0777);
+    }
+}
+
 inline bool WriteFile(const std::string& path, std::string_view contents) {
+    EnsureParentDirs(path);
     const std::string temporary = path + ".tmp";
     FILE* file = std::fopen(temporary.c_str(), "wb");
     if (!file) return false;
