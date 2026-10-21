@@ -422,7 +422,7 @@ struct RuntimeLauncher::Impl {
         }
         else if (name == "game_settings.set") { const auto& g=game(args); auto settings=services.game_settings(g.title_id); Json values=settings; for(auto it=args.at("patch").begin();it!=args.at("patch").end();++it) { if(!values.contains(it.key())) throw std::runtime_error("Unknown game setting"); values[it.key()]=it.value(); } from_json(values,settings);ok=services.set_game_settings(g.title_id,settings); }
         else if (name == "game.docked") { const auto& g=game(args); ok=services.set_docked(g.title_id,args.at("value")); }
-        else if (name == "game_files.set") ok=services.set_files_folder(args.at("path"));
+        else if (name == "game_files.set") { ok=services.set_files_folder(args.at("path")); if (ok) refresh(); }
         else if (name == "mods.enabled") { const auto& g=game(args); ok=services.set_mods_enabled(g.title_id,args.at("value")); }
         else if (name == "mod.enabled") { const auto& g=game(args); ok=services.set_mod_enabled(g.title_id,args.at("name"),args.at("value")); }
         else if (name == "cheat.enabled") { const auto& g=game(args); ok=services.set_cheat_enabled(g.title_id,args.at("mod"),args.at("name"),args.at("value")); }

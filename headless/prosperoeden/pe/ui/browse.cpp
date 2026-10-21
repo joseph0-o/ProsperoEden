@@ -146,6 +146,15 @@ void Launcher::press_files(Key key)
     case Key::triangle:
     {
         const bool saved = services_.set_files_folder(browse_dir_);
+        if (saved)
+        {
+            folder_info_ = services_.folder_info(browse_dir_);
+            read_home();
+            name_home_games();
+            finish_scan(false);
+            games_loaded_ = false;
+            start_scan();
+        }
         say(saved ? tr("Saved. Reopen ProsperoEden to use this folder.") :
                     tr("Could not save the folder. Please try again."),
             !saved);
@@ -157,6 +166,14 @@ void Launcher::press_files(Key key)
         const std::string fallback = services_.default_files_folder();
         const bool saved = services_.set_files_folder(fallback);
         (void)browse_to(fallback);
+        if (saved)
+        {
+            read_home();
+            name_home_games();
+            finish_scan(false);
+            games_loaded_ = false;
+            start_scan();
+        }
         say(saved ? tr("Default folder saved. Reopen ProsperoEden to use it.") :
                     tr("Could not save the folder. Please try again."),
             !saved);

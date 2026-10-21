@@ -1252,13 +1252,33 @@ pe::ui::FolderInfo EdenServices::folder_info(const std::string& directory) {
 }
 
 std::string EdenServices::files_folder() { return Eden::AssetsDir(); }
-std::string EdenServices::saved_files_folder() { return Eden::LoadSavedAssetsDir(); }
-std::string EdenServices::default_files_folder() { return Eden::kDefaultAssetsDir; }
+std::string EdenServices::saved_files_folder() {
+    const std::string saved = Eden::LoadSavedAssetsDir();
+    return saved.empty() ? Eden::AssetsDir() : saved;
+}
+std::string EdenServices::default_files_folder() { return Eden::ResolveDefaultAssetsDir(); }
 
 bool EdenServices::set_files_folder(const std::string& directory) {
+    if (!Eden::ValidAssetsDir(directory)) return false;
     const bool saved = Eden::SaveAssetsDir(directory);
-    if (!saved) Eden::Report("settings", "Could not write the game files folder");
-    return saved;
+    if (!saved) Eden::Report("settings", "Could not write the game files folder to config; applying to active session");
+    Eden::SetAssetsDir(directory);
+    if (Eden::FilesystemAccess() && Eden::DirectoryExists(directory)) {
+        for (const char* folder : {"/keys", "/firmware", "/roms", "/updates", "/mods", "/ryujinx"})
+            (void)mkdir((directory + folder).c_str(), 0777);
+    }
+    {
+        const std::lock_guard lock(bridge_);
+        setup_ = eden_startup_error();
+        Eden::Report("setup", setup_.empty() ? "Keys and firmware checks passed after folder change" : setup_.c_str());
+    }
+    if (Eden::FilesystemAccess()) {
+        Eden::Remote::Stop();
+        Eden::Remote::Start({Eden::ConfigFile("remote"), Eden::CoversDir(), Eden::AssetsPath("roms"),
+                             Eden::AssetsPath("updates"), Eden::AssetsPath(".remote-downloads")},
+                            WriteCover, ListFolder);
+    }
+    return saved || Eden::DirectoryExists(directory);
 }
 
 int EdenServices::filesystem_access() { return Eden::FilesystemAccessStatus(); }
